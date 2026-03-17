@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumiarcode - Sistema de Gestão Industrial</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2563eb; --sidebar-width: 260px; --header-height: 60px; }
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f1f5f9; overflow-x: hidden; }
+        .login-page { min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%); display: flex; align-items: center; justify-content: center; }
+        .login-card { background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); max-width: 420px; width: 100%; }
+        .login-header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); padding: 40px 40px 30px; text-align: center; color: white; }
+        .login-header i { font-size: 3rem; margin-bottom: 10px; }
+        .login-body { padding: 40px; }
+        .sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100vh; background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); z-index: 1000; overflow-y: auto; }
+        .sidebar-brand { padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-brand i { font-size: 1.8rem; color: #60a5fa; }
+        .sidebar-menu { padding: 15px 0; }
+        .sidebar-menu-item { padding: 12px 25px; color: #94a3b8; text-decoration: none; display: flex; align-items: center; gap: 12px; transition: all 0.2s; border-left: 3px solid transparent; font-size: 0.9rem; }
+        .sidebar-menu-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .sidebar-menu-item.active { background: rgba(37,99,235,0.2); color: #60a5fa; border-left-color: #2563eb; }
+        .sidebar-menu-item i { font-size: 1.1rem; width: 24px; }
+        .sidebar-section { padding: 10px 25px 5px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: #64748b; font-weight: 600; }
+        .main-content { margin-left: var(--sidebar-width); min-height: 100vh; }
+        .top-header { background: white; height: var(--header-height); border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: sticky; top: 0; z-index: 100; }
+        .top-header .breadcrumb { margin: 0; font-size: 0.9rem; }
+        .top-header .breadcrumb .active { color: #2563eb; font-weight: 500; }
+        .user-dropdown { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #2563eb, #1d4ed8); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.85rem; }
+        .content-wrapper { padding: 30px; }
+        .stat-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; border: none; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .stat-card .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: #1e293b; }
+        .stat-card .stat-label { color: #64748b; font-size: 0.85rem; }
+        .data-card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        .data-card .card-header { background: white; border-bottom: 1px solid #e2e8f0; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .data-card .card-header h5 { margin: 0; font-weight: 600; color: #1e293b; }
+        .data-table { margin: 0; width: 100%; }
+        .data-table thead th { background: #f8fafc; border-bottom: 2px solid #e2e8f0; padding: 14px 20px; font-weight: 600; color: #475569; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .data-table tbody td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.9rem; }
+        .data-table tbody tr:hover { background: #f8fafc; }
+        .btn-action { width: 32px; height: 32px; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+        .btn-action:hover { transform: scale(1.1); }
+        .btn-action-view { background: #dbeafe; color: #2563eb; }
+        .btn-action-edit { background: #fef3c7; color: #d97706; }
+        .btn-action-delete { background: #fee2e2; color: #dc2626; }
+        .search-box { position: relative; }
+        .search-box input { padding-left: 40px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .page-content { display: none; animation: fadeIn 0.3s; }
+        .page-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .empty-state { padding: 60px 20px; text-align: center; }
+        .empty-state i { font-size: 4rem; color: #cbd5e1; margin-bottom: 20px; }
+        .empty-state h5 { color: #64748b; margin-bottom: 10px; }
+        .modal-header { background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 20px 24px; }
+        .modal-body { padding: 24px; }
+        .modal-footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 24px; }
+        .form-label { font-weight: 500; color: #374151; margin-bottom: 6px; }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; }
+        .form-control:focus, .form-select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (max-width: 768px) { 
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; } 
+            .sidebar.show { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+            .sidebar-overlay.show { display: block; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay" class="loading-overlay d-none"><div class="spinner"></div></div>
+    <div id="loginPage" class="login-page">
+        <div class="login-card">
+            <div class="login-header"><i class="bi bi-building"></i><h3 class="mt-2">Lumiarcode</h3><p class="mb-0 opacity-75">Sistema de Gestão Industrial</p></div>
+            <div class="login-body">
+                <div id="debugInfo" class="alert alert-info mb-3" style="font-size:12px;">
+                    <i class="bi bi-info-circle"></i> JS loaded | API: <span id="apiStatus">checking...</span>
+                </div>
+                <form id="loginForm">
+                    <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="email" placeholder="seu@email.com" required></div>
+                    <div class="mb-3"><label class="form-label">Senha</label><input type="password" class="form-control" id="password" placeholder="••••••••" required></div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">Lembrar usuário e senha</label>
+                    </div>
+                    <div id="loginError" class="alert alert-danger d-none py-2"></div>
+                    <button type="button" class="btn btn-primary w-100 py-2" style="background:#2563eb;border:none;" id="loginBtn"><i class="bi bi-box-arrow-in-right me-2"></i>Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="mainApp" class="d-none">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-building"></i>
+                        <span class="text-white fw-bold">Lumiarcode</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-light d-md-none" id="closeSidebarBtn">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <nav class="sidebar-menu">
+                <div class="sidebar-section">Principal</div>
+                <a href="#" class="sidebar-menu-item active" data-page="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <div class="sidebar-section">Cadastros</div>
+                <a href="#" class="sidebar-menu-item" data-page="clients"><i class="bi bi-people-fill"></i> Clientes</a>
+                <a href="#" class="sidebar-menu-item" data-page="users"><i class="bi bi-person-badge-fill"></i> Usuários</a>
+                <a href="#" class="sidebar-menu-item" data-page="vehicles"><i class="bi bi-car-front-fill"></i> Veículos</a>
+                <div class="sidebar-section">Estoque</div>
+                <a href="#" class="sidebar-menu-item" data-page="materials"><i class="bi bi-box-seam-fill"></i> Materiais</a>
+                <a href="#" class="sidebar-menu-item" data-page="kits"><i class="bi bi-boxes"></i> Kits</a>
+                <div class="sidebar-section">Processos</div>
+                <a href="#" class="sidebar-menu-item" data-page="processes"><i class="bi bi-gear-fill"></i> Processos</a>
+                <a href="#" class="sidebar-menu-item" data-page="transformations"><i class="bi bi-arrow-repeat"></i> Transformações</a>
+                <a href="#" class="sidebar-menu-item" data-page="pops"><i class="bi bi-file-earmark-text-fill"></i> POPs</a>
+                <a href="#" class="sidebar-menu-item" data-page="checklists"><i class="bi bi-check2-square"></i> Checklists</a>
+                <div class="sidebar-section">Operações</div>
+                <a href="#" class="sidebar-menu-item" data-page="service-orders"><i class="bi bi-clipboard-check-fill"></i> Ordens de Serviço</a>
+                <a href="#" class="sidebar-menu-item" data-page="batches"><i class="bi bi-collection-fill"></i> Lotes</a>
+                <div class="sidebar-section">Sistema</div>
+                <a href="#" class="sidebar-menu-item" data-page="audit-logs"><i class="bi bi-journal-text"></i> Logs</a>
+                <a href="#" class="sidebar-menu-item" id="logoutBtn" style="color:#f87171;"><i class="bi bi-box-arrow-left"></i> Sair</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+            <header class="top-header">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary d-md-none" id="mobileMenuBtn">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <nav class="breadcrumb mb-0"><ol class="breadcrumb mb-0"><li class="breadcrumb-item"><a href="#" class="text-decoration-none" data-page="dashboard">Home</a></li><li class="breadcrumb-item active" id="currentPage">Dashboard</li></ol></nav>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="user-dropdown"><div class="user-avatar" id="userAvatar">?</div><span class="fw-medium" id="userName">Usuário</span></div>
+                </div>
+            </header>
+            <div class="content-wrapper">
+                <div id="dashboard" class="page-content active">
+                    <h4 class="mb-4 fw-bold">Dashboard</h4>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3"><div class="stat-card"><div class="d-flex justify-content-between align-items-start"><div><div class="stat-value" id="dashClients">0</div><div class="stat-label">Clientes</div></div><div class="stat-icon" style="background:#dbeafe;color:#2563eb;"><i class="bi bi-people"></i></div></div></div></div>
+                        <div class="col-md-3"><div class="stat-card"><div class="d-flex justify-content-between align-items-start"><div><div class="stat-value" id="dashVehicles">0</div><div class="stat-label">Veículos</div></div><div class="stat-icon" style="background:#d1fae5;color:#059669;"><i class="bi bi-car-front"></i></div></div></div></div>
+                        <div class="col-md-3"><div class="stat-card"><div class="d-flex justify-content-between align-items-start"><div><div class="stat-value" id="dashServiceOrders">0</div><div class="stat-label">Ordens de Serviço</div></div><div class="stat-icon" style="background:#fef3c7;color:#d97706;"><i class="bi bi-clipboard-check"></i></div></div></div></div>
+                        <div class="col-md-3"><div class="stat-card"><div class="d-flex justify-content-between align-items-start"><div><div class="stat-value" id="dashBatches">0</div><div class="stat-label">Lotes</div></div><div class="stat-icon" style="background:#e0e7ff;color:#6366f1;"><i class="bi bi-collection"></i></div></div></div></div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6"><div class="data-card"><div class="card-header"><h5><i class="bi bi-graph-up me-2"></i>Estatísticas</h5></div><div class="card-body p-4"><div class="d-flex justify-content-between mb-3"><span>Materiais</span><span class="fw-bold" id="dashMaterials">0</span></div><div class="d-flex justify-content-between mb-3"><span>Processos</span><span class="fw-bold" id="dashProcesses">0</span></div><div class="d-flex justify-content-between mb-3"><span>Checklists</span><span class="fw-bold" id="dashChecklists">0</span></div><div class="d-flex justify-content-between"><span>POPs</span><span class="fw-bold" id="dashPops">0</span></div></div></div></div>
+                        <div class="col-md-6"><div class="data-card"><div class="card-header"><h5><i class="bi bi-info-circle me-2"></i>Sobre</h5></div><div class="card-body p-4"><div class="text-center py-4"><i class="bi bi-building text-primary" style="font-size:3rem;"></i><h5 class="mt-3">Lumiarcode</h5><p class="text-muted">Sistema de Gestão Industrial</p><small class="text-muted">Versão 1.0.0</small></div></div></div></div>
+                    </div>
+                </div>
+                <div id="crudPage" class="page-content">
+                    <div class="d-flex justify-content-between align-items-center mb-4"><h4 class="mb-0 fw-bold" id="pageTitle">Título</h4><button class="btn btn-primary" id="addBtn" style="background:#2563eb;border:none;"><i class="bi bi-plus-circle me-2"></i>Novo</button></div>
+                    <div class="data-card mb-4"><div class="card-body p-3"><div class="row g-3"><div class="col-md-8"><div class="search-box"><i class="bi bi-search"></i><input type="text" class="form-control" id="searchInput" placeholder="Buscar..."></div></div><div class="col-md-4"><button class="btn btn-primary w-100" id="searchBtn" style="background:#2563eb;border:none;"><i class="bi bi-search me-2"></i>Buscar</button></div></div></div></div>
+                    <div class="data-card"><div class="card-body p-0"><div class="table-responsive"><table class="data-table" id="dataTable"><thead></thead><tbody></tbody></table></div><div class="empty-state" id="emptyState" style="display:none;"><i class="bi bi-inbox"></i><h5>Nenhum registro</h5><p>Adicione um novo registro.</p></div></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold"><i class="bi bi-eye me-2"></i>Detalhes</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="detailContent"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button></div></div></div></div>
+    <div class="modal fade" id="formModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold" id="formTitle"><i class="bi bi-pencil-square me-2"></i>Formulário</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><form id="crudForm"><div class="modal-body" id="formContent"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary" style="background:#2563eb;border:none;"><i class="bi bi-check-lg me-2"></i>Salvar</button></div></form></div></div></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    console.log('Lumiarcode JS loaded');
+    const API_BASE = 'https://lumiarcode-v2-dot-lumiarcode-legado-485220.uc.r.appspot.com/api';
+    
+    // Test API connectivity on load
+    fetch(API_BASE+'/auth/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email: 'test', password: 'test'})
+    }).then(r => r.json()).then(d => {
+        document.getElementById('apiStatus').innerHTML = '✅ API reachable';
+        document.getElementById('apiStatus').className = 'text-success';
+    }).catch(e => {
+        document.getElementById('apiStatus').innerHTML = '❌ API unreachable: ' + e.message;
+        document.getElementById('apiStatus').className = 'text-danger';
+    });
+    
+    let token = localStorage.getItem('lumiarcode_token');
+    let currentPage = 'dashboard';
+    let currentEntity = '';
+    const entities = {
+        clients: {title:'Clientes',endpoint:'/clients',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'email',label:'Email',type:'email',col:6},{name:'phone',label:'Telefone',type:'text',col:6},{name:'document',label:'CPF/CNPJ',type:'text',col:6},{name:'address',label:'Endereço',type:'text',col:6}],columns:['id','name','email','phone','document']},
+        users: {title:'Usuários',endpoint:'/users',fields:[{name:'name',label:'Nome',type:'text',required:true,col:6},{name:'email',label:'Email',type:'email',required:true,col:6},{name:'password',label:'Senha',type:'password',required:true,col:6},{name:'client_id',label:'Cliente',type:'select',required:true,col:6}],columns:['id','name','email','status']},
+        vehicles: {title:'Veículos',endpoint:'/vehicles',fields:[{name:'chassis',label:'Chassi',type:'text',required:true,col:6},{name:'plate',label:'Placa',type:'text',col:6},{name:'year',label:'Ano',type:'number',col:4},{name:'color',label:'Cor',type:'text',col:4},{name:'vehicle_type_id',label:'Tipo',type:'select',col:4}],columns:['id','chassis','plate','year','color']},
+        materials: {title:'Materiais',endpoint:'/materials',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'item_value',label:'Valor',type:'number',col:4},{name:'description',label:'Descrição',type:'textarea',col:12},{name:'sku',label:'SKU',type:'text',col:6},{name:'material_type_id',label:'Tipo',type:'select',col:6}],columns:['id','name','sku','item_value']},
+        kits: {title:'Kits',endpoint:'/kits',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'item_value',label:'Valor',type:'number',col:4},{name:'description',label:'Descrição',type:'textarea',col:12}],columns:['id','name','item_value']},
+        processes: {title:'Processos',endpoint:'/processes',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'description',label:'Descrição',type:'textarea',col:12}],columns:['id','name']},
+        transformations: {title:'Transformações',endpoint:'/transformations',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'description',label:'Descrição',type:'textarea',col:12}],columns:['id','name']},
+        pops: {title:'POPs',endpoint:'/pops',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'pop_type',label:'Tipo',type:'select',col:4,options:['pop','it']},{name:'description',label:'Descrição',type:'textarea',col:12},{name:'process_id',label:'Processo',type:'select',col:12}],columns:['id','name','pop_type']},
+        checklists: {title:'Checklists',endpoint:'/checklists',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'checklist_type',label:'Tipo',type:'select',col:4,options:['recebimento','operacional','qualidade']},{name:'description',label:'Descrição',type:'textarea',col:12},{name:'process_id',label:'Processo',type:'select',col:12}],columns:['id','name','checklist_type']},
+        'service-orders': {title:'Ordens de Serviço',endpoint:'/service-orders',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'description',label:'Descrição',type:'textarea',col:12},{name:'client_id',label:'Cliente',type:'select',col:6},{name:'transformation_id',label:'Transformação',type:'select',col:6},{name:'status',label:'Status',type:'select',col:12,options:['pending','in_progress','completed']}],columns:['id','name','status','created_at']},
+        batches: {title:'Lotes',endpoint:'/batches',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'client_id',label:'Cliente',type:'select',col:4},{name:'quantity_requested',label:'Qtd Solicitada',type:'number',col:6},{name:'quantity_received',label:'Qtd Recebida',type:'number',col:6}],columns:['id','name','quantity_requested','quantity_received','status']},
+        'audit-logs': {title:'Logs de Auditoria',endpoint:'/audit-logs',fields:[],columns:['id','action','table_name','user_id','created_at']}
+    };
+    document.addEventListener('DOMContentLoaded', () => { 
+        // Pre-fill saved credentials
+        if (localStorage.getItem('lumiarcode_remember') === 'true') {
+            const savedEmail = localStorage.getItem('lumiarcode_saved_email');
+            const savedPassword = localStorage.getItem('lumiarcode_saved_password');
+            if (savedEmail) document.getElementById('email').value = savedEmail;
+            if (savedPassword) document.getElementById('password').value = savedPassword;
+            document.getElementById('rememberMe').checked = true;
+        }
+        
+        if(token) showMainApp();
+        
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('show');
+            document.getElementById('sidebarOverlay').classList.toggle('show');
+        });
+        document.getElementById('sidebarOverlay').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('show');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        });
+        document.getElementById('closeSidebarBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('show');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        });
+        
+        // Mobile menu item click - close menu
+        document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if(window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('show');
+                    document.getElementById('sidebarOverlay').classList.remove('show');
+                }
+            });
+        });
+        document.getElementById('loginBtn').addEventListener('click', doLogin);
+        
+        // Enter key to login
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') doLogin();
+        });
+    });
+    
+    window.doLogin = async function() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const rememberMe = document.getElementById('rememberMe').checked;
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.classList.add('d-none');
+        document.getElementById('loadingOverlay').classList.remove('d-none');
+        
+        // Save credentials if remember me is checked
+        if (rememberMe) {
+            localStorage.setItem('lumiarcode_remember', 'true');
+            localStorage.setItem('lumiarcode_saved_email', email);
+            localStorage.setItem('lumiarcode_saved_password', password);
+        } else {
+            localStorage.removeItem('lumiarcode_remember');
+            localStorage.removeItem('lumiarcode_saved_email');
+            localStorage.removeItem('lumiarcode_saved_password');
+        }
+        
+        try {
+            const response = await fetch(API_BASE+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+            const data = await response.json();
+            console.log('Login response:', data);
+            if(data.access_token) { 
+                token = data.access_token; 
+                localStorage.setItem('lumiarcode_token', token); 
+                showMainApp(); 
+            } else { 
+                errorDiv.textContent = data.error || data.message || 'Credenciais inválidas'; 
+                errorDiv.classList.remove('d-none'); 
+            }
+        } catch(err) { 
+            console.error('Login error:', err);
+            errorDiv.textContent='Erro de conexão: ' + err.message; 
+            errorDiv.classList.remove('d-none'); 
+        }
+        document.getElementById('loadingOverlay').classList.add('d-none');
+    };
+    
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try { await fetch(API_BASE+'/auth/logout',{method:'POST',headers:{'Authorization':'Bearer '+token}}); }catch(e){}
+        token = null; localStorage.removeItem('lumiarcode_token');
+        document.getElementById('mainApp').classList.add('d-none');
+        document.getElementById('loginPage').classList.remove('d-none');
+    });
+    function showMainApp() { document.getElementById('loginPage').classList.add('d-none'); document.getElementById('mainApp').classList.remove('d-none'); loadUserData(); loadDashboard(); }
+    async function loadUserData() {
+        try { const response = await fetch(API_BASE+'/auth/me',{headers:{'Authorization':'Bearer '+token}}); const data = await response.json(); if(data.name) { document.getElementById('userName').textContent = data.name; document.getElementById('userAvatar').textContent = data.name.charAt(0).toUpperCase(); } }catch(e) {}
+    }
+    async function loadDashboard() {
+        try {
+            const [c,v,so,b,m,p,cp,pop] = await Promise.all([
+                fetch(API_BASE+'/clients?per_page=1',{headers:{'Authorization':'Bearer '+token}}).then(r=>r.json()),
+                fetch(API_BASE+'/vehicles?per_page=1',{headers:{'Authorization':'Bearer '+token}}).then(r=>r.json()),
+                fetch(API_BASE+'/service-orders?per_page=1',{headers:{'Authorization':'Bearer '+token}}).then(r=>r.json()),
+                fetch(API_BASE+'/batches?per_page=1',{headers:{'Authorization':'Bearer '+token}}).then(r=>r.json()),
+                fetch(API_BASE+'/materials?per_page=1',{headers:{'Authorization':'Bearer '+token}}).then(r=>r.json()),
+                fetch(API_BASE+'/processes?per_page=1',{headers:{'Authorization':'Bearer '+token}}).then(r=>r.json()),
+                fetch(API_BASE+'/checklists?per_page=1',{headers:{'Authorization':'Bearer '+token}}).then(r=>r.json()),
+                fetch(API_BASE+'/pops?per_page=1',{headers:{'Authorization':'Bearer '+token}}).then(r=>r.json())
+            ]);
+            document.getElementById('dashClients').textContent = c.pagination?.total || 0;
+            document.getElementById('dashVehicles').textContent = v.pagination?.total || 0;
+            document.getElementById('dashServiceOrders').textContent = so.pagination?.total || 0;
+            document.getElementById('dashBatches').textContent = b.pagination?.total || 0;
+            document.getElementById('dashMaterials').textContent = m.pagination?.total || 0;
+            document.getElementById('dashProcesses').textContent = p.pagination?.total || 0;
+            document.getElementById('dashChecklists').textContent = cp.pagination?.total || 0;
+            document.getElementById('dashPops').textContent = pop.pagination?.total || 0;
+        } catch(e) { console.error(e); }
+    }
+    document.querySelectorAll('.sidebar a[data-page]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); const page = link.dataset.page; document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active')); link.classList.add('active'); showPage(page); }); });
+    function showPage(page) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+        document.getElementById('currentPage').textContent = page === 'dashboard' ? 'Dashboard' : entities[page]?.title || page;
+        if(page === 'dashboard') { document.getElementById('dashboard').classList.add('active'); loadDashboard(); }
+        else { currentEntity = page; const entity = entities[page]; document.getElementById('pageTitle').textContent = entity.title; document.getElementById('crudPage').classList.add('active'); document.getElementById('addBtn').style.display = entity.fields.length > 0 ? 'block' : 'none'; loadData(page); }
+    }
+    async function loadData(entity, search = '') {
+        const config = entities[entity]; const url = search ? `${API_BASE}${config.endpoint}?search=${search}` : `${API_BASE}${config.endpoint}`;
+        try {
+            const response = await fetch(url, {headers:{'Authorization':'Bearer '+token}});
+            const data = await response.json(); renderTable(config, data.data || []);
+        } catch(e) { console.error(e); }
+    }
+    function renderTable(config, data) {
+        const thead = document.querySelector('#dataTable thead');
+        const tbody = document.querySelector('#dataTable tbody');
+        thead.innerHTML = '<tr>' + config.columns.map(col => '<th>' + col.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()) + '</th>').join('') + '<th>Ações</th></tr>';
+        if(data.length === 0) { document.getElementById('emptyState').style.display = 'block'; tbody.innerHTML = ''; }
+        else { document.getElementById('emptyState').style.display = 'none'; tbody.innerHTML = data.map(item => '<tr>' + config.columns.map(col => { let val = item[col]; if(typeof val === 'object') val = val?.name || val?.id || '-'; return '<td>' + (val || '-') + '</td>'; }).join('') + '<td><div class="btn-actions">' + (config.fields.length > 0 ? '<button class="btn-action btn-action-view me-1" onclick="showDetail(\''+currentEntity+'\','+item.id+')"><i class="bi bi-eye"></i></button><button class="btn-action btn-action-edit me-1" onclick="showForm(\''+currentEntity+'\','+item.id+')"><i class="bi bi-pencil"></i></button><button class="btn-action btn-action-delete" onclick="deleteItem(\''+currentEntity+'\','+item.id+')"><i class="bi bi-trash"></i></button>' : '<button class="btn-action btn-action-view" onclick="showDetail(\''+currentEntity+'\','+item.id+')"><i class="bi bi-eye"></i></button>') + '</div></td></tr>').join(''); }
+    }
+    document.getElementById('searchBtn').addEventListener('click', () => { const search = document.getElementById('searchInput').value; loadData(currentEntity, search); });
+    document.getElementById('searchInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') { const search = document.getElementById('searchInput').value; loadData(currentEntity, search); } });
+    document.getElementById('addBtn').addEventListener('click', () => { showForm(currentEntity); });
+    async function showDetail(entity, id) {
+        const config = entities[entity];
+        try {
+            const response = await fetch(`${API_BASE}${config.endpoint}/${id}`,{headers:{'Authorization':'Bearer '+token}});
+            const data = await response.json(); let html = '<div class="row">';
+            for(const [key,value] of Object.entries(data.data || data)) { if(typeof value === 'object' && value !== null) html += '<div class="col-md-6 mb-2"><strong>'+key+':</strong> '+(value.name || value.id || JSON.stringify(value))+'</div>'; else html += '<div class="col-md-6 mb-2"><strong>'+key+':</strong> '+(value || '-')+'</div>'; }
+            html += '</div>'; document.getElementById('detailContent').innerHTML = html; new bootstrap.Modal(document.getElementById('detailModal')).show();
+        } catch(e) { console.error(e); }
+    }
+    async function showForm(entity, id = null) {
+        const config = entities[entity];
+        const isEdit = id !== null;
+        document.getElementById('formTitle').textContent = isEdit ? 'Editar ' + config.title : 'Novo ' + config.title;
+        let formHtml = '';
+        if (isEdit) {
+            try {
+                const response = await fetch(`${API_BASE}${config.endpoint}/${id}`,{headers:{'Authorization':'Bearer '+token}});
+                const data = await response.json();
+                for (const field of config.fields) {
+                    const value = data.data?.[field.name] || data[field.name] || '';
+                    formHtml += renderField(field, value);
+                }
+            } catch(e) {}
+        } else {
+            for (const field of config.fields) { formHtml += renderField(field, ''); }
+        }
+        formHtml += '<input type="hidden" name="id" value="' + (id || '') + '">';
+        document.getElementById('formContent').innerHTML = formHtml;
+        new bootstrap.Modal(document.getElementById('formModal')).show();
+        document.getElementById('crudForm').addEventListener('submit', async (e) => { e.preventDefault(); await saveData(entity, id); });
+    }
+    function renderField(field, value) {
+        let input = '';
+        if (field.type === 'select') {
+            input = `<select class="form-select" name="${field.name}" ${field.required ? 'required' : ''}><option value="">Selecione...</option></select>`;
+        } else if (field.type === 'textarea') {
+            input = `<textarea class="form-control" name="${field.name}" ${field.required ? 'required' : ''}>${value}</textarea>`;
+        } else if (field.type === 'password') {
+            input = `<input type="password" class="form-control" name="${field.name}" ${field.required ? 'required' : ''}>`;
+        } else {
+            input = `<input type="${field.type}" class="form-control" name="${field.name}" value="${value}" ${field.required ? 'required' : ''}>`;
+        }
+        return `<div class="mb-3 col-md-${field.col}"><label class="form-label">${field.label}</label>${input}</div>`;
+    }
+    async function saveData(entity, id = null) {
+        const config = entities[entity];
+        const formData = new FormData(document.getElementById('crudForm'));
+        const data = Object.fromEntries(formData);
+        if (!data.id) delete data.id;
+        const url = id ? `${API_BASE}${config.endpoint}/${id}` : `${API_BASE}${config.endpoint}`;
+        const method = id ? 'PUT' : 'POST';
+        try {
+            const response = await fetch(url, {method, headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}, body:JSON.stringify(data)});
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
+                loadData(entity);
+            } else {
+                const error = await response.json();
+                alert(error.message || 'Erro ao salvar');
+            }
+        } catch(e) { console.error(e); }
+    }
+    async function deleteItem(entity, id) {
+        if (!confirm('Tem certeza que deseja excluir?')) return;
+        const config = entities[entity];
+        try {
+            await fetch(`${API_BASE}${config.endpoint}/${id}`,{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+            loadData(entity);
+        } catch(e) { console.error(e); }
+    }
+    </script>
+</body>
+</html>
