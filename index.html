@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumiarcode - Sistema de Gestão Industrial</title>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -171,6 +172,8 @@
     </div>
     <div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold"><i class="bi bi-eye me-2"></i>Detalhes</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="detailContent"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button></div></div></div></div>
     <div class="modal fade" id="formModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title fw-bold" id="formTitle"><i class="bi bi-pencil-square me-2"></i>Formulário</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><form id="crudForm"><div class="modal-body" id="formContent"></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary" style="background:#2563eb;border:none;"><i class="bi bi-check-lg me-2"></i>Salvar</button></div></form></div></div></div>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     console.log('Lumiarcode JS loaded');
@@ -192,8 +195,10 @@
     let token = localStorage.getItem('lumiarcode_token');
     let currentPage = 'dashboard';
     let currentEntity = '';
+    let selectOptionsCache = {};
     const entities = {
-        clients: {title:'Clientes',endpoint:'/clients',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'email',label:'Email',type:'email',col:6},{name:'phone',label:'Telefone',type:'text',col:6},{name:'document',label:'CPF/CNPJ',type:'text',col:6},{name:'address',label:'Endereço',type:'text',col:6}],columns:['id','name','email','phone','document']},
+        clients: {title:'Clientes',endpoint:'/clients',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'email',label:'Email',type:'email',col:6},{name:'phone',label:'Telefone',type:'text',col:6},{name:'document',label:'CPF/CNPJ',type:'text',col:6},{name:'address',label:'Endereço',type:'text',col:6},
+            {name:'client_kind_id',label:'Tipo de Cliente',type:'select',col:6,endpoint:'/client-kinds'}],columns:['id','name','email','phone','document']},
         users: {title:'Usuários',endpoint:'/users',fields:[{name:'name',label:'Nome',type:'text',required:true,col:6},{name:'email',label:'Email',type:'email',required:true,col:6},{name:'password',label:'Senha',type:'password',required:true,col:6},{name:'client_id',label:'Cliente',type:'select',required:true,col:6}],columns:['id','name','email','status']},
         vehicles: {title:'Veículos',endpoint:'/vehicles',fields:[{name:'chassis',label:'Chassi',type:'text',required:true,col:6},{name:'plate',label:'Placa',type:'text',col:6},{name:'year',label:'Ano',type:'number',col:4},{name:'color',label:'Cor',type:'text',col:4},{name:'vehicle_type_id',label:'Tipo',type:'select',col:4}],columns:['id','chassis','plate','year','color']},
         materials: {title:'Materiais',endpoint:'/materials',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'item_value',label:'Valor',type:'number',col:4},{name:'description',label:'Descrição',type:'textarea',col:12},{name:'sku',label:'SKU',type:'text',col:6},{name:'material_type_id',label:'Tipo',type:'select',col:6}],columns:['id','name','sku','item_value']},
@@ -372,13 +377,23 @@
         }
         formHtml += '<input type="hidden" name="id" value="' + (id || '') + '">';
         document.getElementById('formContent').innerHTML = formHtml;
+        
+        // Initialize Select2 after rendering form
+        setTimeout(initSelect2, 100);
         new bootstrap.Modal(document.getElementById('formModal')).show();
         document.getElementById('crudForm').addEventListener('submit', async (e) => { e.preventDefault(); await saveData(entity, id); });
     }
     function renderField(field, value) {
         let input = '';
         if (field.type === 'select') {
-            input = `<select class="form-select" name="${field.name}" ${field.required ? 'required' : ''}><option value="">Selecione...</option></select>`;
+            let options = '<option value="">Selecione...</option>';
+            if (field.options) {
+                // Static options
+                field.options.forEach(opt => {
+                    options += `<option value="${opt}" ${value == opt ? 'selected' : ''}>${opt}</option>`;
+                });
+            }
+            input = `<select class="form-select select2" name="${field.name}" id="select_${field.name}" data-endpoint="${field.endpoint || ''}" ${field.required ? 'required' : ''}>${options}</select>`;
         } else if (field.type === 'textarea') {
             input = `<textarea class="form-control" name="${field.name}" ${field.required ? 'required' : ''}>${value}</textarea>`;
         } else if (field.type === 'password') {
@@ -387,6 +402,45 @@
             input = `<input type="${field.type}" class="form-control" name="${field.name}" value="${value}" ${field.required ? 'required' : ''}>`;
         }
         return `<div class="mb-3 col-md-${field.col}"><label class="form-label">${field.label}</label>${input}</div>`;
+    }
+    
+    async function loadSelectOptions(endpoint, selectEl) {
+        if (!endpoint) return;
+        try {
+            const response = await fetch(API_BASE + endpoint, { headers: { 'Authorization': 'Bearer ' + token } });
+            const data = await response.json();
+            const items = data.data || [];
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name || item.title || item.id;
+                selectEl.appendChild(option);
+            });
+            // Set selected value if exists
+            if (selectEl.dataset.selected) {
+                selectEl.value = selectEl.dataset.selected;
+            }
+        } catch (e) {
+            console.error('Error loading select options:', e);
+        }
+    }
+    
+    function initSelect2() {
+        document.querySelectorAll('.select2').forEach(select => {
+            if (!select.dataset.select2Init) {
+                select.dataset.select2Init = 'true';
+                const endpoint = select.dataset.endpoint;
+                if (endpoint) {
+                    loadSelectOptions(endpoint, select);
+                }
+                $(select).select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: 'Selecione...',
+                    allowClear: true
+                });
+            }
+        });
     }
     async function saveData(entity, id = null) {
         const config = entities[entity];
