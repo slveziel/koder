@@ -202,7 +202,7 @@
         users: {title:'Usuários',endpoint:'/users',fields:[{name:'name',label:'Nome',type:'text',required:true,col:6},{name:'email',label:'Email',type:'email',required:true,col:6},{name:'password',label:'Senha',type:'password',required:true,col:6},{name:'client_id',label:'Cliente',type:'select',required:true,col:6}],columns:['id','name','email','status']},
         vehicles: {title:'Veículos',endpoint:'/vehicles',fields:[{name:'chassis',label:'Chassi',type:'text',required:true,col:6},{name:'plate',label:'Placa',type:'text',col:6},{name:'year',label:'Ano',type:'number',col:4},{name:'color',label:'Cor',type:'text',col:4},{name:'vehicle_type_id',label:'Tipo',type:'select',col:4}],columns:['id','chassis','plate','year','color']},
         materials: {title:'Materiais',endpoint:'/materials',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'item_value',label:'Valor',type:'number',col:4},{name:'description',label:'Descrição',type:'textarea',col:12},{name:'sku',label:'SKU',type:'text',col:6},{name:'material_type_id',label:'Tipo',type:'select',col:6}],columns:['id','name','sku','item_value']},
-        kits: {title:'Kits',endpoint:'/kits',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'item_value',label:'Valor',type:'number',col:4},{name:'description',label:'Descrição',type:'textarea',col:12}],columns:['id','name','item_value']},
+        kits: {title:'Kits',endpoint:'/kits',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'description',label:'Descrição',type:'textarea',col:12},{name:'item_value',label:'Valor',type:'number',col:6},{name:'materials',label:'Materiais',type:'select-multiple',col:12,endpoint:'/materials'}],columns:['id','name','item_value']},
         processes: {title:'Processos',endpoint:'/processes',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'description',label:'Descrição',type:'textarea',col:12}],columns:['id','name']},
         transformations: {title:'Transformações',endpoint:'/transformations',fields:[{name:'name',label:'Nome',type:'text',required:true,col:12},{name:'description',label:'Descrição',type:'textarea',col:12}],columns:['id','name']},
         pops: {title:'POPs',endpoint:'/pops',fields:[{name:'name',label:'Nome',type:'text',required:true,col:8},{name:'pop_type',label:'Tipo',type:'select',col:4,options:['pop','it']},{name:'description',label:'Descrição',type:'textarea',col:12},{name:'process_id',label:'Processo',type:'select',col:12}],columns:['id','name','pop_type']},
@@ -394,6 +394,9 @@
                 });
             }
             input = `<select class="form-select select2" name="${field.name}" id="select_${field.name}" data-endpoint="${field.endpoint || ''}" ${field.required ? 'required' : ''}>${options}</select>`;
+        } else if (field.type === 'select-multiple') {
+            // Multiple select for many-to-many relationships
+            input = `<select class="form-select select2" name="${field.name}[]" id="select_${field.name}" data-endpoint="${field.endpoint || ''}" multiple>`;
         } else if (field.type === 'textarea') {
             input = `<textarea class="form-control" name="${field.name}" ${field.required ? 'required' : ''}>${value}</textarea>`;
         } else if (field.type === 'password') {
